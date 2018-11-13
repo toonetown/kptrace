@@ -85,6 +85,8 @@ class PanicReport:
             if found_backtrace_label:
                 if re.match(".*0x.{16} : 0x.{16}.*", line):
                     addr = line[20:].strip()
+                    if " " in addr:
+                        addr = addr[:addr.find(" ")].strip()
                     result.addresses.append(addr)
                 else:
                     break;
