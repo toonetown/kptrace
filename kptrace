@@ -209,7 +209,7 @@ def usage():
     print
     print("-report contains the full path to the kernel panic report file to parse.")
     print("If you omit this, kptrace uses the most recent kernel panic report from")
-    print("/Library/Logs/DiagnosticRerports.")
+    print("/Library/Logs/DiagnosticReports.")
     print
     print("-kdk contains the full path to the kernel development kit containing kernel")
     print("symbols. If omitted, kptrace parses the kernel version from the panic report")
