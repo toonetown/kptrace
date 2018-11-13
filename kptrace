@@ -5,6 +5,7 @@
 
 import argparse
 import glob
+import json
 import os
 import re
 import subprocess
@@ -63,8 +64,7 @@ class PanicReport:
                     if ext.startswith("dependency:"):
                         ext = ext[len("dependency:"):].strip()
 
-                    fullname = ext[:ext.find("(")].strip()
-                    name = fullname[fullname.rfind(".") + 1:].strip()
+                    name = ext[:ext.find("(")].strip()
 
                     addr = ext[ext.find("@") + 1:].strip()
                     addr = addr[:18]
@@ -159,11 +159,15 @@ def kptrace(reportfile, kdk, kexts):
     for ext in report.exts_in_trace:
         name = ext[0]
         for searchdir in searchdirs:
-            path = searchdir + "/Contents/MacOS/" + name
-            if os.path.isfile(path):
-                print("  " + name + " -> " + path)
-                pathtable[name] = path
-                break
+            info = searchdir + "/Contents/Info.plist"
+            if os.path.isfile(info):            
+                j = json.loads(subprocess.check_output("plutil -convert json -o - " + info, shell=True))
+                if j['CFBundleIdentifier'] == name:
+                    path = searchdir + "/Contents/MacOS/" + j['CFBundleExecutable']
+                    if os.path.isfile(path):
+                        print("  " + name + " -> " + path)
+                        pathtable[name] = path
+                        break
         if name not in pathtable:
             err  = "Unable to resolve file path for module " + name + ". "
             err += "Are you missing a -kext reference?"
@@ -182,7 +186,7 @@ def kptrace(reportfile, kdk, kexts):
     for ext in report.exts_in_trace:
         (name, addr) = ext
         commands.add("target modules add " + pathtable[name])
-        commands.add("target modules load --file " + name + " __TEXT " + addr)
+        commands.add("target modules load --file " + os.path.basename(pathtable[name]) + " __TEXT " + addr)
 
     for addr in report.addresses:
         commands.add("image lookup -a " + addr)
