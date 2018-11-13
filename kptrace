@@ -196,7 +196,8 @@ def kptrace(reportfile, kdk, kexts):
     with open(command_file, 'w+') as f:
         f.write(commands.file_contents())
 
-    subprocess.call("cat " + command_file + " | lldb 2>&1 | grep Summary | sed \"s/^.*Summary: /  - /\"", shell=True)
+    subprocess.call("cat " + command_file + " | lldb 2>&1 | sed -nE 's/^      (Summary:|        ) (.*)$/ - \\2/p'", 
+                    shell=True)
     print
 
 def usage():
